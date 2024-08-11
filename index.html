@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,10 +50,19 @@
         button:hover {
             background-color: #0056b3;
         }
+        #qr-reader {
+            width: 300px;
+            margin: auto;
+        }
     </style>
+    <!-- Load the HTML5 QR code library -->
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 </head>
 <body>
     <h1>Preventive Maintenance Checklist for AC</h1>
+    <div id="qr-reader" style="width:300px;"></div>
+    <button id="start-scan">Start QR Code Scan</button>
+    
     <form id="pmForm">
         <div>
             <label for="acType">AC Type:</label>
@@ -121,18 +131,43 @@
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyBsBipKEuwvSGFeN83P6BYoEPT-kXRFtFM",
-    authDomain: "checklist-7ff53.firebaseapp.com",
-    projectId: "checklist-7ff53",
-    storageBucket: "checklist-7ff53.appspot.com",
-    messagingSenderId: "365240632499",
-    appId: "1:365240632499:web:36d204c8bf840d754fdcc6",
-    measurementId: "G-2G6QVNHQ2H"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // QR Code Scanner
+        const qrCodeScanner = new Html5Qrcode("qr-reader");
+
+        document.getElementById("start-scan").addEventListener("click", () => {
+            qrCodeScanner.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,    // Optional, frame per seconds for qr code scanning
+                    qrbox: { width: 250, height: 250 }  // Optional, if you want bounded box UI
+                },
+                (qrCodeMessage) => {
+                    // Stop the scanner and process the QR code message
+                    qrCodeScanner.stop().then(() => {
+                        document.getElementById("serialNumber").value = qrCodeMessage;
+                    }).catch((err) => {
+                        console.error("Failed to stop the scanner", err);
+                    });
+                },
+                (errorMessage) => {
+                    // console.log(`QR Code no longer in front of camera. Error = ${errorMessage}`);
+                }
+            ).catch((err) => {
+                console.error("Unable to start scanning", err);
+            });
+        });
 
         // Form submission function
         function getLocation(callback) {
